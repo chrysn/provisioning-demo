@@ -111,4 +111,88 @@ Implemented components
 
 Of all this, a few small parts are implemented in components in this repository:
 
-* ...
+* ./implementation/dns-server/:
+  A DNS server based on updns_ (written in Rust) that
+
+  * serves `(base32-of-address).at.* IN AAAA address` records
+
+  * answers any request to `_acme-challenge.*` from a file /tmp/token populated by the next component
+
+* ./implementation/acme.sh/dnsapi/dns_mine.sh:
+  An acme.sh_ API add-on that writes to /tmp/token.
+
+.. _updns: https://github.com/wyhaya/updns
+.. _acme.sh: https://github.com/acmesh-official/acme.sh
+
+Usage
+~~~~~
+
+* Set up some domain such that your development host can serve as a public DNS server.
+
+  I found this easiiest to do by doing a full delegation like this at amsuess.com::
+
+      alt.prometheus                  IN      AAAA    2a01:4f8:190:3064::3
+      devices-test                    IN      NS      alt.prometheus.amsuess.com.
+
+  but that ultimately depends on your DNS setup.
+
+  Note that NS records always "point to port 53", so you'll
+  a) need an IP address to which no DNS server is bound yet, and
+  b) need to run the later DNS server on a privileged port.
+
+  There are all kinds of setups to make this more production-ready --
+  but taking a new IP address and running ``sudo`` is what works best for me.
+
+* Run updns::
+
+      $ cd implementation/dns-server
+      $ cat >config <<EOF
+      bind [2a01:4f8:190:3064::3]:53
+      proxy 0.0.0.0:53
+      EOF
+      $ cargo build
+      $ sudo target/debug/updns -c ./config
+
+  The necessary ``cargo`` tool can come from any Rust installation.
+
+  The proxy line is a crude way to disable request forwarding,
+  which is a feature of updns unused here
+  (and disabling it this way ensures that failing requests are answered quickly).
+
+* Obtain certificates using acme.sh_.
+
+  Get a copy of acme.sh,
+  symlink ./implementation/acme.sh/dnsapi/dns_mine.sh into its dnsapi directory,
+  and run like this::
+
+      ./acme.sh --test --issue --dns dns_mine -d '*.at.hash-of-my-public-key.devices-test.amsuess.com'
+
+  If DNS forwarding is set up correctly, this should eventually show a certificate
+  (for a key it generated on its own at this stage).
+
+Next steps
+~~~~~~~~~~
+
+* Use this with keys generated on a different device.
+
+* Set up some XmlHttpRequest- or WebSocket based way for the device to submit its CSR to a web server that then calls acme.sh (or something equivalent)
+
+* Let that web server verify if the underlying key matches the hash of the public key.
+  After all, while we *may* let the ACME authority sign anything under our domain control, we don't *want* to.
+
+* Write a short web site (to be served by the device) that sends such a request.
+
+  Serving that site will need at least some form of CSR as input,
+  probably the hash-of-my-public-key (to avoid doing any certificate handling in JavaScript),
+  and a way to post the result back to the server.
+
+* Write a server that creates a key,
+  finds its best usable address,
+  joins those into an single link,
+  serves the script on that link,
+  and takes up HTTPS as soon as it receives a certificate.
+
+  (For the router use case, no extra DNS server is needed;
+  the existing updns-based one can be announced as a (low-priority, if that's a thing) DNS server by the unconnected router
+  and gives all the resolution the client needs until it reaches the full Internet.)
+
