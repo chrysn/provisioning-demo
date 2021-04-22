@@ -91,12 +91,30 @@ Several enhancements are conceivable but hinge on changes to web browsers or oth
 
 .. __: https://datatracker.ietf.org/doc/draft-lemon-stub-networks/
 
-An enhancement that should be possible without any such caveats is vendor independence:
-in both examples, the devices could have a list of domains to ask certficiates from,
-or even let the network provide one by means similar to DNS service discovery.
-This allows robustness against vendor services shutting down,
-and would (on tightly administered sites) even allow operation separate from the Internet,
-provided a locally recognized certification authority provides the certificates.
+Other extensions are possible without these caveats,
+but are just left as an exercise to the reader to allow this to stay focused:
+
+* Vendor independence:
+  in both examples, the devices could have a list of domains to ask certficiates from,
+  or even let the network provide one by means similar to DNS service discovery.
+  This allows robustness against vendor services shutting down,
+  and would (on tightly administered sites) even allow operation separate from the Internet,
+  provided a locally recognized certification authority provides the certificates.
+
+* Vendor signing:
+  A vendor can limit signing on its own domain to devices that additionally prove to run the vendor's firmware,
+  be that by means of remote attestation
+  or by prior knowledge of device public keys.
+
+  They can then use the claims encoded by a device having a cetificate for `https://something.device.vendor.com`
+  to ease further onboarding.
+
+* All demos are currently aiming at IPv4.
+  Serving A records for equivalent shorter-prefixed names should be trivial.
+  That old IP version wouldn't allow any ULA tricks.
+  In the router setup case, the router would instead pick private addresses
+  (and could do so reliably enough to print them);
+  the simplification to announce a ULA and thus allow static links in the non-router case would become inapplicable.
 
 Under various conditions,
 steps can be taken by the device to shorten the entry URI;
