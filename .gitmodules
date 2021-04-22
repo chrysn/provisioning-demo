@@ -1,0 +1,3 @@
+[submodule "implementation/dns-server"]
+	path = implementation/dns-server
+	url = https://github.com/chrysn/updns-for-provisioning
