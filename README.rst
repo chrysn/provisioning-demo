@@ -214,3 +214,31 @@ Next steps
   the existing updns-based one can be announced as a (low-priority, if that's a thing) DNS server by the unconnected router
   and gives all the resolution the client needs until it reaches the full Internet.)
 
+Future evolution
+----------------
+
+To get this all to work even fully offline,
+a domain will need to make a promise to always issue ``(base32-of-address).at.*.(domain) IN A(AAA) address`` records,
+and that anyone prooving possession of the encoded key is eligible for certificates for ``(encoded-key).(domain)``.
+
+As domains are issued in a time limited fashion,
+it may make sense to establish such a domain under IETF / IANA control under the ``.arpa`` subdomain.
+
+Until browsers recognize such a domain,
+browser recognition can locally be emulated to obtain the desired behavior before browser support is present by two means:
+
+* A local resolver component is provided that provides the A(AAA) records for any address under the known domain.
+
+  When compatibility with the service provided by global DNS is not necessary,
+  that service may also resolve names without the ``(base32).at`` part as outlined in rdlink_.
+
+* A locally run CA service can replace the web server,
+  using a mechanism similar to the vendor fallback.
+  (With a little handwaving, one could say that devices should always fall back to taking certificates from ``https://certificate-authority.local//`` if that name can be resolved).
+
+  The local service (which would typically be run at the host's loopback interface)
+  would issue certificates for the known domain provided the proof of possesion checks out,
+  and be installed as a local CA in the browser.
+
+  Some additional measures may be necessary to ensure that this kind of certificate will not get used
+  to authenticate the device towards different clients.
