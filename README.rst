@@ -34,15 +34,15 @@ the enternainment system tried to obtain time and a valid certificate over the n
 The user is running a strict firewall that doesn't allow new devices to access the Internet, so that step failed.
 The device got an address (2001:db8::c0ff:ee), though, and thus presented the following address on its QR code::
 
-    http://400gre0000000000000c1vo0to.at.zyk3rwfhkecc3lvb5ajweedxvpfredfqna5xycacamy4zltddvaq.devices.example.com
+    http://at-400gre0000000000000c1vo0to.zyk3rwfhkecc3lvb5ajweedxvpfredfqna5xycacamy4zltddvaq.devices.example.com
 
 When first accessed, the browser mediates a certificate exchange with the server running devices.example.com,
 and provides the home entertainment system with a valid certificate for
-``*.at.zyk3rwfhkecc3lvb5ajweedxvpfredfqna5xycacamy4zltddvaq.devices.example.com``.
+``*.zyk3rwfhkecc3lvb5ajweedxvpfredfqna5xycacamy4zltddvaq.devices.example.com``.
 Once that is installed (a few seconds after the user scanned the code),
 the user is redirected to::
 
-    https://400gre0000000000000c1vo0to.at.zyk3rwfhkecc3lvb5ajweedxvpfredfqna5xycacamy4zltddvaq.devices.example.com
+    https://at-400gre0000000000000c1vo0to.zyk3rwfhkecc3lvb5ajweedxvpfredfqna5xycacamy4zltddvaq.devices.example.com
 
 which shows the nice welcoming green lock.
 
@@ -132,7 +132,7 @@ Of all this, a few small parts are implemented in components in this repository:
 * ./implementation/dns-server/:
   A DNS server based on updns_ (written in Rust) that
 
-  * serves `(base32-of-address).at.* IN AAAA address` records
+  * serves `at-(base32-of-address).* IN AAAA address` records
 
   * answers any request to `_acme-challenge.*` from a file /tmp/token populated by the next component
 
@@ -183,7 +183,7 @@ Usage
   symlink ./implementation/acme.sh/dnsapi/dns_mine.sh into its dnsapi directory,
   and run like this::
 
-      ./acme.sh --test --issue --dns dns_mine -d '*.at.hash-of-my-public-key.devices-test.amsuess.com'
+      ./acme.sh --test --issue --dns dns_mine -d '*.hash-of-my-public-key.devices-test.amsuess.com'
 
   If DNS forwarding is set up correctly, this should eventually show a certificate
   (for a key it generated on its own at this stage).
