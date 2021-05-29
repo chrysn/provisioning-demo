@@ -259,7 +259,8 @@ Future evolution
 
 To get this all to work even fully offline,
 a domain will need to make a promise to always issue ``(base32-of-address).at.*.(domain) IN A(AAA) address`` records,
-and that anyone prooving possession of the encoded key is eligible for certificates for ``(encoded-key).(domain)``.
+and that anyone prooving possession of the encoded key is eligible for certificates for ``(encoded-key).(domain)``
+(essentially, producing ``(encoded-key).(domain) IN TLSA 3 1 0 (key)`` statements).
 
 As domains are issued in a time limited fashion,
 it may make sense to establish such a domain under IETF / IANA control under the ``.arpa`` subdomain.
