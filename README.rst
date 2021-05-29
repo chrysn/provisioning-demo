@@ -203,6 +203,11 @@ Usage
 
       ./acme.sh --test --dns dns_mine -d '*.hash-of-my-public-key.devices-test.amsuess.com' --signcsr --csr my.csr
 
+  Leaving out the ``--test`` produces a setup that gives the Green Lock:
+
+  .. image:: screenshots/20210529-green-locally.png
+     :alt: Screenshot of an unmodified Firefox browser at <https://at-vmf3rvbb9g011smoi9o8u8gees.hash-of-my-public-key.devices-test.amsuess.com:8001/>, showing a "You are securely connected to this site" / "Verified by: Let's Encryt".
+
 Next steps
 ~~~~~~~~~~
 
