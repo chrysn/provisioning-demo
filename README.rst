@@ -201,7 +201,7 @@ Usage
       openssl ecparam -genkey -name secp384r1 | openssl ec -out my.key
       openssl req -new -key my.key -subj "/CN=*.hash-of-my-public-key.devices-test.amsuess.com" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:*.hash-of-my-public-key.devices-test.amsuess.com")) > my.csr
 
-      ./acme.sh --test --dns dns_mine -d '*.hash-of-my-public-key.devices-test.amsuess.com' --signcsr --csr my.csr
+      ./acme.sh --test --dns dns_mine --signcsr --csr my.csr
 
   Leaving out the ``--test`` produces a setup that gives the Green Lock:
 
