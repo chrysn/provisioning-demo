@@ -188,6 +188,21 @@ Usage
   If DNS forwarding is set up correctly, this should eventually show a certificate
   (for a key it generated on its own at this stage).
 
+* A further way towards certificates::
+
+      # i'd prefer just using `openssl genpkey -algorithm ed25519`, but
+      # acme.sh's _readKeyLengthFromCSR doesn't work on those
+      openssl ecparam -genkey -name secp256r1 | openssl ec -out my.key
+      # -subj could just as well be "/", which works with acme-tiny (which
+      # can't do DNS) but is rejected by acme.sh. Using literally the same CN
+      # as the SAN (even though it probably doesn't work like that for a CN)
+      # ensures that there is just one TXT record to be added (which is all the
+      # updns fork can do).
+      openssl ecparam -genkey -name secp384r1 | openssl ec -out my.key
+      openssl req -new -key my.key -subj "/CN=*.hash-of-my-public-key.devices-test.amsuess.com" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:*.hash-of-my-public-key.devices-test.amsuess.com")) > my.csr
+
+      ./acme.sh --test --dns dns_mine -d '*.hash-of-my-public-key.devices-test.amsuess.com' --signcsr --csr my.csr
+
 Next steps
 ~~~~~~~~~~
 
