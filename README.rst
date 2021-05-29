@@ -139,6 +139,14 @@ Of all this, a few small parts are implemented in components in this repository:
 * ./implementation/acme.sh/dnsapi/dns_mine.sh:
   An acme.sh_ API add-on that writes to /tmp/token.
 
+* ./implementation/acme-relay/relay.py:
+  A web service to run acme.sh;
+  this is a primitive version of what the vendor should have running.
+  It offers a very simple "POST your CSR and receive a certificate" API.
+  (In a somewhat more standardization-oriented scenario,
+  this may be exactly the ACME API,
+  just that for the CSRs we're dealing with, many of the checking steps are different).
+
 .. _updns: https://github.com/wyhaya/updns
 .. _acme.sh: https://github.com/acmesh-official/acme.sh
 
@@ -179,16 +187,17 @@ Usage
 
 * Obtain certificates using acme.sh_.
 
-  Get a copy of acme.sh,
-  symlink ./implementation/acme.sh/dnsapi/dns_mine.sh into its dnsapi directory,
-  and run like this::
+  Get a copy of acme.sh (for the next steps, ideally into ./implementation/),
+  and symlink ./implementation/acme.sh-addons/dnsapi/dns_mine.sh into its dnsapi directory.
+
+  To try it out, you can run acme.sh right here::
 
       ./acme.sh --test --issue --dns dns_mine -d '*.hash-of-my-public-key.devices-test.amsuess.com'
 
   If DNS forwarding is set up correctly, this should eventually show a certificate
   (for a key it generated on its own at this stage).
 
-* A further way towards certificates::
+* Locally on a to-be-certified device, generate a key and CSR::
 
       # i'd prefer just using `openssl genpkey -algorithm ed25519`, but
       # acme.sh's _readKeyLengthFromCSR doesn't work on those
@@ -201,9 +210,19 @@ Usage
       openssl ecparam -genkey -name secp384r1 | openssl ec -out my.key
       openssl req -new -key my.key -subj "/CN=*.hash-of-my-public-key.devices-test.amsuess.com" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:*.hash-of-my-public-key.devices-test.amsuess.com")) > my.csr
 
-      ./acme.sh --test --dns dns_mine --signcsr --csr my.csr
+  So far, this literally says "hash-of-my-public-key" where there should be a hash --
+  but right now that's OK because relay.py doesn't check yet.
 
-  Leaving out the ``--test`` produces a setup that gives the Green Lock:
+  Again, this can be tested with acme.sh
+
+* Inside implementation/acme-relay, run ``./relay.py``.
+
+  This opens a web server at port 9885, through which you can get certificates for your CSRs generated before::
+
+      curl --data-binary @./my.csr http://localhost:9885/
+
+  If the ``--test`` flag is stripped out of the relay script,
+  the resulting certificates can be used to get local HTTPS running:
 
   .. image:: screenshots/20210529-green-locally.png
      :alt: Screenshot of an unmodified Firefox browser at <https://at-vmf3rvbb9g011smoi9o8u8gees.hash-of-my-public-key.devices-test.amsuess.com:8001/>, showing a "You are securely connected to this site" / "Verified by: Let's Encryt".
@@ -211,12 +230,13 @@ Usage
 Next steps
 ~~~~~~~~~~
 
-* Use this with keys generated on a different device.
-
-* Set up some XmlHttpRequest- or WebSocket based way for the device to submit its CSR to a web server that then calls acme.sh (or something equivalent)
+* Decide on a public-key-to-hostname scheme, and check that in relay.py.
 
 * Let that web server verify if the underlying key matches the hash of the public key.
   After all, while we *may* let the ACME authority sign anything under our domain control, we don't *want* to.
+
+  (At this step, it may also check whether the rest of the host name matches --
+  not that Let's Encrypt would sign us such certificates, but why bother them.)
 
 * Write a short web site (to be served by the device) that sends such a request.
 
@@ -250,7 +270,7 @@ browser recognition can locally be emulated to obtain the desired behavior befor
 * A local resolver component is provided that provides the A(AAA) records for any address under the known domain.
 
   When compatibility with the service provided by global DNS is not necessary,
-  that service may also resolve names without the ``(base32).at`` part as outlined in rdlink_.
+  that service may also resolve names without the ``at-(base32)`` part as outlined in rdlink_.
 
 * A locally run CA service can replace the web server,
   using a mechanism similar to the vendor fallback.
